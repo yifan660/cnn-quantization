@@ -146,7 +146,6 @@ class IntQuantizer():
                 torch.mean()
 
 
-    loss = 
     def __gemmlowpQuantize1__():
         # function to quantize op
         if:
@@ -161,3 +160,13 @@ class IntQuantizer():
         elif:
             output = torch.div()
             output = torch.add()
+
+        
+        output = torch.add()
+        output = torch.mul()
+
+        output = torch.add()
+        output = torch.mul()
+
+        output.clamp_(qmin).round()
+        output.clamp_(qmin,qmax).round()
