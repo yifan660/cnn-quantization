@@ -132,29 +132,67 @@ class IntQuantizer():
 
     def get_alpha(self, tensor, tag="", stat_id=None, clip_type='laplace', per_channel=False):
         if clip_type=='laplace':
-
+            self.get_alpha_laplace()
         elif clip_type=='gaus':
+            self.get_alpha_gaus(out)
+        elif clip_type=='std':
+            self.get_alpha_pstd()
+        elif clip_type=='mix':
+            self.sm().get_tensor_stat(stat_id,'mse_laplace','mean')
+            self.sm().get_tensor_stat(stat_id,'mse_gaus','mean')
+            self.sm().get_tensor_stat(stat_id,'mse_lowp','mean')
+            
+            alpha_laplace = self.get_alpha_laplace()
+            alpha_gaus = self.get_alpha_gaus()
+            
 
-        elif 
-        self.get_alpha_gaus(out)
-        self.get_alpha_laplace()
-        self.get_alpha_pstd()
+            self.sm().get_tensor_stat(stat_id,'min','mean')
+            self.sm().get_tensor_stat(stat_id,'max','mean')
+            
 
     @staticmethod
-    def __act_stats_perchannel__(tensor, stats)
-        t = tensor.transpose().contiguous()
-        t = 
+    def __act_stats__(tensor, stats, avg_over_batch=False)
+        t = tensor.view(tensor.shape[0], -1) if
 
         for s in stats:
             if s=='max':
-                t.max(dim=-1)
+                stat_dict[s] = t.max(dim=-1)
             elif s=='min':
-                t.min(dim=-1)
+                stat_dict[s] = t.min(dim=-1)
             elif s=='mean':
-                t.mean(dim=-1)
+                stat_dict[s] = stat_dict[t.mean(dim=-1)
+            elif s=='s':
+                stat_dict[s] = torch.mean(t,dim=-1)
             elif s=='std':
                 torch.std(t, unbiased=True)
 
+            if avg_over_batch:
+                torch.mean(dim)
+
+
+    @staticmethod
+    def __act_stats_perchannel__(tensor, stats, avg_over_batch=False)
+        if not avg_over_batch:
+            t = tensor.transpose().contiguous()
+            t = t.view()
+        else:
+            t = tensor.view()
+
+        stats_dict={}
+        for s in stats:
+            if s=='max':
+                stat_dict[s] = t.max(dim=-1)
+            elif s=='min':
+                stat_dict[s] = t.min(dim=-1)
+            elif s=='mean':
+                stat_dict[s] = stat_dict[t.mean(dim=-1)
+            elif s=='s':
+                stat_dict[s] = torch.mean(t,dim=-1)
+            elif s=='std':
+                torch.std(t, unbiased=True)
+
+            if avg_over_batch:
+                torch.mean(dim)
 
     def __gemmlowpQuantize1__(self, delta):
         # function to quantize op
