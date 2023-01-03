@@ -1,8 +1,13 @@
-omega_table = np.concatenate([np.linspace(0.01,0.1,resolution,endpoint),
-                            np.linspace(0.1,1,resolution,endpoint),
-                            np.linspace(1,10,resolution,endpoint),
-                            np.linspace(10,100,resolution,endpoint),
-                            np.linspace(100,1000,resolution,endpoint)])
+import torch
+import numpy as np
+import math
+
+resolution = 20
+omega_table = np.concatenate([np.linspace(0.01,0.1,resolution,endpoint=False),
+                            np.linspace(0.1,1,resolution,endpoint=False),
+                            np.linspace(1,10,resolution,endpoint=False),
+                            np.linspace(10,100,resolution,endpoint=False),
+                            np.linspace(100,1000,resolution,endpoint=False)])
 
 alpha_table = np.array()
 
@@ -125,11 +130,17 @@ class IntQuantizer():
     aciq_factor
     aciq_factor
 
-    def get_alpha():
+    def get_alpha(self, tensor, tag="", stat_id=None, clip_type='laplace', per_channel=False):
+        if clip_type=='laplace':
+
+        elif clip_type=='gaus':
+
+        elif 
         self.get_alpha_gaus(out)
         self.get_alpha_laplace()
         self.get_alpha_pstd()
 
+    @staticmethod
     def __act_stats_perchannel__(tensor, stats)
         t = tensor.transpose().contiguous()
         t = 
@@ -141,25 +152,28 @@ class IntQuantizer():
                 t.min(dim=-1)
             elif s=='mean':
                 t.mean(dim=-1)
+            elif s=='std':
+                torch.std(t, unbiased=True)
 
-            elif:
-                torch.mean()
 
-
-    def __gemmlowpQuantize1__():
+    def __gemmlowpQuantize1__(self, delta):
         # function to quantize op
+        qmin=0
         if:
             qmax = 2**self.bit_nums-1
+            scale = (delta)/(qmax-qmin)
         else:
             qmax = 2**bit_alloc-1
+            scale = torch.where(qmax>0, (delta)/(qmax-qmin), torch.tensor(0).to(tensor_device))
         
-        elif:
-            output = torch.div()
-            output = torch.add()
-        
-        elif:
-            output = torch.div()
-            output = torch.add()
+        scale = torch.max(scale, torch.tensor([1e-8]).to(tensor.device))
+
+        if self.enforce_true_zero:
+            output = torch.div(output, scale.unsqueeze(-1))
+            output = torch.add(output, zero_point.unsqueeze(-1))        
+        else:
+            output = torch.add(output, scale.unsqueeze(-1))
+            output = torch.div(output, scale.unsqueeze(-1))
 
         
         output = torch.add()
@@ -170,3 +184,37 @@ class IntQuantizer():
 
         output.clamp_(qmin).round()
         output.clamp_(qmin,qmax).round()
+
+        output
+
+    @staticmethod
+    def get_bits_alloc(alpha, num_bits, round=False):
+        B = len(alpha)*2**num_bits      # (2^num_bits)*len(alpha)
+
+        p = alpha**(2./3)    # alpha^(2/3), where alpha is 
+        bin_alloc = (B*p)/p.sum()
+        # torch.ceil  the smallest integer greater than or equal to each element 
+        bin_alloc = torch.round(torch.log2(bin_alloc) if round else torch.ceil(torch.log2(bin_alloc)))   # get log2 of each element
+        bin_alloc[bin_alloc<0] = 0
+        bin_alloc[bin_alloc>0] = 8
+
+        return bin_alloc
+
+    @staticmethod
+    def get_bits_alloc_fixed_target(alpha, num_bits, round=False):
+        eps = 0.01                  # 
+        goal_bits = num_bits
+        target_bits = goal_bits
+        delta = 1.
+        iter = 0
+        max_iter = 10
+        while abs(2*delta)>eps and iter<max_iter:
+            iter += 1
+            bit_alloc = IntQuantizer.get_bits_alloc(alpha, target_bits, round=round)
+            delta = (goal_bits-bit_alloc.mean())/2
+            target_bits+=delta.item()
+
+        return bit_alloc
+
+    torch.std   # torch standard deviation
+    def 
