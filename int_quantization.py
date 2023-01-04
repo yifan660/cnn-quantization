@@ -20,7 +20,7 @@ class IntQuantizer():
         self.
         self.clipping = params
         self.stats_kind = params
-        self.kld = params[]
+        self.kld = params['kld']
         self.pcq_w = params['pcq_weights']
         self.pcq_a = params['pcq_act']
         self.bit_alloc_act = params['bit_alloc_act']
@@ -41,11 +41,15 @@ class IntQuantizer():
         self.alpha_laplace = {0:1.05, 1:1.86, 2:2.83, 3:3.89, 4:5.03, 5:6.2, 6:7.41, 7:8.64, 8:9.89}
         self.alpha_laplace_positive = {0:1.86, 1:2.83, 2:3.89, 3:5.03, 4:6.2, 5:7.41, 6:8.64, 7:9.89, 8:11.16}
     
+        self.
+        self.force_positive = False
+        self.half_range = False
     def __call__(self):
 
         if:
-            
-        if kld:
+            getattr(self, override_att[0])
+            setattr(self, override_att[0], override_att[1])
+        if skld:
             self.KldQuantize()
         elif clipping:
             if self.mtd_quant:
@@ -65,14 +69,17 @@ class IntQuantizer():
         else:
             self.gemmlowpMinMaxQuantize()
 
-    def get_omega():
-        sigma
+    @staticmethod
+    def get_omega(sigma, target_bins):
         len(sigma)*target_bins
         sigma **(2./3)
 
+    @staticmethod
     def get_alpha_mult():
         omega = omega.cpu().numpy()
 
+        inc = (alpha_table[]-alpha_table[])/(omega_table[]-omega_table[])
+        
     def mid_tread_quantize_weights_per_channel(self, tensor, id):
 
     def mid_tread_quantize_activations():
@@ -303,6 +310,3 @@ class IntQuantizer():
             target_bits+=delta.item()
 
         return bit_alloc
-    
-
-        
