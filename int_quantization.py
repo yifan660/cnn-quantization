@@ -13,7 +13,7 @@ alpha_table = np.array()
 
 class IntQuantizer():
     def __init__():
-        self.
+        self.num_bits
         self.int_exp
         self.enforce_true
         self.
@@ -36,6 +36,10 @@ class IntQuantizer():
         self.logger = params[]
         self.mtd_quant = params[]
 
+        self.alpha_gaus = {1:1.24, 2:1.71, 3:2.15, 4:2.55, 5:2.93, 6:3.28, 7:3.61, 8:3.92}
+        self.alpha_gaus_positive = {1:1.71, 2:2.15, 3:2.55, 4:2.93, 5:3.28, 6:3.61, 7:3.92, 8:4.2}
+        self.alpha_laplace = {0:1.05, 1:1.86, 2:2.83, 3:3.89, 4:5.03, 5:6.2, 6:7.41, 7:8.64, 8:9.89}
+        self.alpha_laplace_positive = {0:1.86, 1:2.83, 2:3.89, 3:5.03, 4:6.2, 5:7.41, 6:8.64, 7:9.89, 8:11.16}
     def __call__(self):
 
         if:
@@ -130,6 +134,9 @@ class IntQuantizer():
         if stat_id=='gaus'
             self.st
 
+        aciq_factor = self.alpha_laplace_positive if else self.
+
+        aciq_factor = self.alpha_laplace_positive[self.num_bits] if else self.alpha_laplace[self.num_bits]
     def get_alpha_pstd(self, tensor, p, tag, stat_id=None, per_channel=False):
     
     def get_alpha(self, tensor, tag="", stat_id=None, clip_type='laplace', per_channel=False):
@@ -244,7 +251,8 @@ class IntQuantizer():
 
     @staticmethod
     def get_bits_alloc_fixed_target(alpha, num_bits, round=False):
-        eps = 0.01                  # 
+        # function to get the fixed bits allocation
+        eps = 0.01                   
         goal_bits = num_bits
         target_bits = goal_bits
         delta = 1.
@@ -257,5 +265,6 @@ class IntQuantizer():
             target_bits+=delta.item()
 
         return bit_alloc
+    
 
-    def 
+        
