@@ -34,7 +34,7 @@ class IntQuantizer():
         self.bit_alloc_target_weight = params['bit_alloc_target_weight']
         self.measure_entropy = params['measure_entropy']
         self.logger = params['logger']
-        self.mtd_quant = params[]
+        self.mtd_quant = params['mtd_quant']
 
         self.alpha_gaus = {1:1.24, 2:1.71, 3:2.15, 4:2.55, 5:2.93, 6:3.28, 7:3.61, 8:3.92}
         self.alpha_gaus_positive = {1:1.71, 2:2.15, 3:2.55, 4:2.93, 5:3.28, 6:3.61, 7:3.92, 8:4.2}
@@ -130,23 +130,29 @@ class IntQuantizer():
 
     def get_alpha_gaus(self, tensor, stat_id=None, per_channel=False):
         if stat_id is not None:
-            self.st
-
-    def get_alpha_laplace(self, stat_id=None, per_channel=False):
-        if stat_id is not None:
-            self.sm().
-
+            self.sm().get_tensor_stat(stat_id)
         else:
             if per_channel:
                 __act_stats_perchannel__(tensor, stat_id)
             else:
                 __act_stats__(tensor, stat_id)
 
+        self.alpha_gaus_positive(self.num_bits) if self.force_positive else self.alpha_gaus(self.num_bits)
+    
+    def get_alpha_laplace(self, stat_id=None, per_channel=False):
+        if stat_id is not None:
+            self.sm().get_tensor_stat(stat_id)
+        else:
+            if per_channel:
+                self.__act_stats_perchannel__(tensor, stat_id)
+            else:
+                self.__act_stats__(tensor, stat_id)
+
         if self.bit_alloc_per_channel and per_channel and self.num_bits<=4:
             prior = 'std'
             
             if stat_id is not None:
-                std = self.sm().get_tensor_stat
+                std = self.sm().get_tensor_stat(stat_id,)
             
             else:
                 if per_channel:
@@ -159,8 +165,18 @@ class IntQuantizer():
         
         else:
             aciq_factor = self.alpha_laplace_positive[self.num_bits] if self.force_positive else self.alpha_laplace[self.num_bits]
-    def get_alpha_pstd(self, tensor, p, tag, stat_id=None, per_channel=False):
     
+    def get_alpha_pstd(self, tensor, p, tag, stat_id=None, per_channel=False):
+        if stat_id is not None:
+            self.sm().get_tensor_stat()
+        else:
+            if per_channel:
+                self.__act_stats_perchannel__(tensor, stat_id)
+            else:
+                self.__act_stats__(tensor, stat_id)
+
+        self.alpha_gaus_positive(self.num_bits) if self.force_positive else self.alpha_gaus(self.num_bits)
+
     def get_alpha(self, tensor, tag="", stat_id=None, clip_type='laplace', per_channel=False):
         if clip_type=='laplace':
             self.get_alpha_laplace()
@@ -289,9 +305,4 @@ class IntQuantizer():
         return bit_alloc
     
 
-        
-        
-    
-
-        
         
