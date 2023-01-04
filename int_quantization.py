@@ -68,22 +68,27 @@ class IntQuantizer():
     def get_alpha_mult():
         omega = omega.cpu().numpy()
 
-    def mid_tread_quantize_weights_per_channel():
+    def mid_tread_quantize_weights_per_channel(self, tensor, id):
 
     def mid_tread_quantize_activations():
 
-    def mid_tread_quantization(clip=False, sym=True):
+    def mid_tread_quantization(self, tensor, id, target, clip=False, sym=True):
+        std = tensor.std(-1)
+        omega = self.get_omega(std)
+
         if clip:
-            alpha_mult = tensor.new_tensor(self.get_alpha_mult(sigma))
+            alpha_mult = tensor.new_tensor(self.get_alpha_mult(omega))
             mu = tensor.mean(dim=-1)
             b = torch.mean()
+
+            rng = 2*alpha_mult*b if sym else (torch.max(mu, mu.new_tensor([0]))+alpha_mult*b)
         else:
             rng=(tensor.max(-1)[0]-tensor.min(-1)[0]) if sym else tensor.max(-1)[0]
 
         torch.where(omega>0, tensor.new_tensor())
 
         if clip:
-            mu_q = 
+            mu_q = mu/Delta if sym else torch.max(mu, mu.new_tensor([0]))/Delta
             c_max = mu_q + (omega/2 if sym else omega)
             c_min = ((mu_q - omega/2) if sym else tensor.new_tensor())
 
@@ -253,5 +258,4 @@ class IntQuantizer():
 
         return bit_alloc
 
-    torch.std   # torch standard deviation
     def 
