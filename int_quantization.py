@@ -118,18 +118,15 @@ class IntQuantizer():
                 max_ = self.__act_stats_perchannel__()
 
 
-    def get_alpha_gaus(stat_id):
+    def get_alpha_gaus(self, tensor, stat_id=None):
         if stat_id=='gaus'
             self.st
-    def get_alpha_laplace(stat_id):
+    def get_alpha_laplace(stat_id=None):
         if stat_id=='gaus'
             self.st
 
-    bit_alloc = 
-    aciq_factor = np.array
-    aciq_factor
-    aciq_factor
-
+    def get_alpha_pstd(self, tensor, p, tag, stat_id=None, per_channel=False):
+    
     def get_alpha(self, tensor, tag="", stat_id=None, clip_type='laplace', per_channel=False):
         if clip_type=='laplace':
             self.get_alpha_laplace()
@@ -142,13 +139,15 @@ class IntQuantizer():
             self.sm().get_tensor_stat(stat_id,'mse_gaus','mean')
             self.sm().get_tensor_stat(stat_id,'mse_lowp','mean')
             
-            alpha_laplace = self.get_alpha_laplace()
-            alpha_gaus = self.get_alpha_gaus()
+            alpha_laplace = self.get_alpha_laplace(tensor, stat_id, per_channel)
+            alpha_gaus = self.get_alpha_gaus(tensor, stat_id, tag, per_channel)
             
+            min_ = self.sm().get_tensor_stat(stat_id,'min','mean')
+            max_ = self.sm().get_tensor_stat(stat_id,'max','mean')
+            alpha_lowp = (max_ - min_)/2
 
-            self.sm().get_tensor_stat(stat_id,'min','mean')
-            self.sm().get_tensor_stat(stat_id,'max','mean')
-            
+            alpha = np.where(mse_gaus < mse_laplace, alpha_gaus, alpha_laplace)
+            alpha = np.where(mse_lowp < mse_gaus, alpha_lowp, alpha)
 
     @staticmethod
     def __act_stats__(tensor, stats, avg_over_batch=False)
