@@ -128,17 +128,37 @@ class IntQuantizer():
                 max_ = self.__act_stats_perchannel__()
 
 
-    def get_alpha_gaus(self, tensor, stat_id=None):
-        if stat_id=='gaus'
-            self.st
-    def get_alpha_laplace(stat_id=None):
-        if stat_id=='gaus'
+    def get_alpha_gaus(self, tensor, stat_id=None, per_channel=False):
+        if stat_id is not None:
             self.st
 
-        bits_alloc = self.get_bits_alloc_fixed_target
-        aciq_factor = self.alpha_laplace_positive[self.num_bits] if else self.
+    def get_alpha_laplace(self, stat_id=None, per_channel=False):
+        if stat_id is not None:
+            self.sm().
 
-        aciq_factor = self.alpha_laplace_positive[self.num_bits] if self.positive_else self.alpha_laplace[self.num_bits]
+        else:
+            if per_channel:
+                __act_stats_perchannel__(tensor, stat_id)
+            else:
+                __act_stats__(tensor, stat_id)
+
+        if self.bit_alloc_per_channel and per_channel and self.num_bits<=4:
+            prior = 'std'
+            
+            if stat_id is not None:
+                std = self.sm().get_tensor_stat
+            
+            else:
+                if per_channel:
+                    self.__act_stats_perchannel__(tensor)
+                else:
+                    self.__act_stats__(tensor)
+
+            bits_alloc = self.get_bits_alloc_fixed_target
+            aciq_factor = self.alpha_laplace_positive[self.num_bits] if self.force_positive else self.
+        
+        else:
+            aciq_factor = self.alpha_laplace_positive[self.num_bits] if self.force_positive else self.alpha_laplace[self.num_bits]
     def get_alpha_pstd(self, tensor, p, tag, stat_id=None, per_channel=False):
     
     def get_alpha(self, tensor, tag="", stat_id=None, clip_type='laplace', per_channel=False):
@@ -267,6 +287,9 @@ class IntQuantizer():
             target_bits+=delta.item()
 
         return bit_alloc
+    
+
+        
     
 
         
