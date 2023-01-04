@@ -155,7 +155,7 @@ class IntQuantizer():
                     self.__act_stats__(tensor)
 
             bits_alloc = self.get_bits_alloc_fixed_target
-            aciq_factor = self.alpha_laplace_positive[self.num_bits] if self.force_positive else self.
+            aciq_factor = np.array([(self.alpha_laplace_positive[nbit.item()] if self.force_positive else self.alpha_laplace[nbit.item()]) for nbit in bits_alloc])
         
         else:
             aciq_factor = self.alpha_laplace_positive[self.num_bits] if self.force_positive else self.alpha_laplace[self.num_bits]
@@ -289,6 +289,7 @@ class IntQuantizer():
         return bit_alloc
     
 
+        
         
     
 
