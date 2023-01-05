@@ -77,16 +77,32 @@ class IntQuantizer():
     @staticmethod
     def get_alpha_mult():
         omega = omega.cpu().numpy()
+        if not sym:
+            omega*=2
 
-        inc = (alpha_table[]-alpha_table[])/(omega_table[]-omega_table[])
-        
+        i = omega_table
+        inc = (alpha_table[i]-alpha_table[i-1])/(omega_table[i]-omega_table[i-1])
+        alpha = alpha_table[i]-inc*(omega_table[i]-omega)
+        return alpha
+
     def mid_tread_quantize_weights_per_channel(self, tensor, id):
+        t = tensor.view(tensor.shape[0],-1)
 
-    def mid_tread_quantize_activations(self, tensor, id):
+        self.mid_tread_quantization(t, id, self.bit_alloc_target_weight, clip=True, sym=True)
+        
+    def mid_tread_quantize_activation(self, tensor, id):
+        if self.pcq_a 
+            out = self.mid_tread_quantize_activation_per_channel(tensor, id)
+        else:
+            out, entropy = self.mid_tread_quantization(tensor, id, self.,sym=symmetric)
+
 
     def mid_tread_quantize_activation_per_channel(self, tensor, id):
         symmetric = not (self.force_positive or self.half_range)
-        mid_tread_quantization(tensor, id, target,sym=symmetric)
+        tq, entropy = mid_tread_quantization(tensor, id, target,sym=symmetric)
+
+        tq.view(C,H).transpose(0, 1).contiguous()  # C x N x H x W
+
     def mid_tread_quantization(self, tensor, id, target, clip=False, sym=True):
         std = tensor.std(-1)
         omega = self.get_omega(std)
@@ -94,7 +110,8 @@ class IntQuantizer():
         if clip:
             alpha_mult = tensor.new_tensor(self.get_alpha_mult(omega))
             mu = tensor.mean(dim=-1)
-            b = torch.mean()
+            # unsqueeze is adding one dimension
+            b = torch.mean(torch.abs(tensor-mu.unsqueeze(-1)), dim=-1)
 
             rng = 2*alpha_mult*b if sym else (torch.max(mu, mu.new_tensor([0]))+alpha_mult*b)
         else:
@@ -115,7 +132,14 @@ class IntQuantizer():
 
         return out
 
-    def gemmlowpClippingQuantize():
+    def gemmlowpClippingQuantize(self, tensor, id, tag="", stat_id=None):
+        if stat_id is not None:
+            min_value = self.sm().get_tensor_stat()
+
+        else:
+            if 
+    def gemmlowpMinMaxQuantize():
+        if stat_id is not None:
 
     def gemmlowpQuantizeWeightsPerChannel():
 
