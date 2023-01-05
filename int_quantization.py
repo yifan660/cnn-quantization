@@ -82,8 +82,11 @@ class IntQuantizer():
         
     def mid_tread_quantize_weights_per_channel(self, tensor, id):
 
-    def mid_tread_quantize_activations():
+    def mid_tread_quantize_activations(self, tensor, id):
 
+    def mid_tread_quantize_activation_per_channel(self, tensor, id):
+        symmetric = not (self.force_positive or self.half_range)
+        mid_tread_quantization(tensor, id, target,sym=symmetric)
     def mid_tread_quantization(self, tensor, id, target, clip=False, sym=True):
         std = tensor.std(-1)
         omega = self.get_omega(std)
@@ -107,8 +110,10 @@ class IntQuantizer():
             out = torch.min(c_max.unsqueeze(-1))
             out = torch.max(c_min.unsqueeze(-1))
 
+        if self.measure_entropy:
             shannon_entropy(out,)
 
+        return out
 
     def gemmlowpClippingQuantize():
 
