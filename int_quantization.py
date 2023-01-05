@@ -1,6 +1,8 @@
 import torch
 import numpy as np
 import math
+import pytorch_quantizer.quantization.inference.statistic_manager import StatisticManager
+import pytorch_quantizer.quantization.inference.statistic_manager_perchannel import StatisticManagerPerChannel
 
 resolution = 20
 omega_table = np.concatenate([np.linspace(0.01,0.1,resolution,endpoint=False),
@@ -41,9 +43,11 @@ class IntQuantizer():
         self.alpha_laplace = {0:1.05, 1:1.86, 2:2.83, 3:3.89, 4:5.03, 5:6.2, 6:7.41, 7:8.64, 8:9.89}
         self.alpha_laplace_positive = {0:1.86, 1:2.83, 2:3.89, 3:5.03, 4:6.2, 5:7.41, 6:8.64, 7:9.89, 8:11.16}
     
-        self.
+        self.gaussian_const = (0.5*0.35)*(1)
+        self.sm = StatisticManagerPerChannel() if else StatisticManager
         self.force_positive = False
         self.half_range = False
+
     def __call__(self):
 
         if:
@@ -134,10 +138,24 @@ class IntQuantizer():
 
     def gemmlowpClippingQuantize(self, tensor, id, tag="", stat_id=None):
         if stat_id is not None:
-            min_value = self.sm().get_tensor_stat()
-
+            min_value = self.sm().get_tensor_stat(stat_id, 'min', 'mean')
+            max_value = self.sm().get_tensor_stat(stat_id, 'max', 'mean')
         else:
             if 
+                self.__act_stats_perchannel__(tensor,stat_id)
+                self.__act_stats_perchannel__(tensor,stat_id)
+
+            else:
+                stats = self.__act_stats__(tensor,)
+
+            min_value = stats['min']
+            max_value = stats['max']
+
+        if:
+            get_alpha()
+            res = self.gemmlowpQuantizeActivationPerChannel(tensor,id, tag)
+            
+            res = self.__gemmlowpQuantize1__(tensor,)
     def gemmlowpMinMaxQuantize():
         if stat_id is not None:
 
