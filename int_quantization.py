@@ -233,6 +233,29 @@ class IntQuantizer():
 
         return p*std
 
+
+    def to_numpy(tensor):
+        if isinstance(tensor, torch.Tensor):
+            return tensor.cpu().numpy()
+        else:
+            return tensor
+
+    
+    def alpha2DeltaOffset(alpha, max_value, min_value, mean, clip2max=False):
+        alpha = to_numpy(alpha)
+        max_value = to_numpy(max_value)
+        min_value = to_numpy(min_value)
+
+        if self.force_positive or self.half_range:
+            delta = np.maximum(np.array(mean),0)
+            if clip2max:
+                delta = np.minimum(delta)
+        else:
+ 
+            if clip2max:
+                delta = np.minimum(delta, )
+            offset = np.maximum(np.array(mean),0)
+
     def get_alpha(self, tensor, tag="", stat_id=None, clip_type='laplace', per_channel=False):
         if clip_type=='laplace':
             self.get_alpha_laplace()
@@ -319,11 +342,12 @@ class IntQuantizer():
             output = torch.div(output, scale.unsqueeze(-1))
 
         
-        output = torch.add()
-        output = torch.mul()
-
-        output = torch.add()
-        output = torch.mul()
+        if self.enforce_true_zero:
+            output = torch.add(output, -zero_point.unsqueeze(-1))
+            output = torch.mul(output, scale.unsqueeze(-1))
+        else:
+            output = torch.mul(output, scale.unsqueeze(-1))
+            output = torch.add(output, offset.unsqueeze(-1))
 
         output.clamp_(qmin).round()
         output.clamp_(qmin,qmax).round()
