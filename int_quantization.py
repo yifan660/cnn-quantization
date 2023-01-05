@@ -135,17 +135,6 @@ class IntQuantizer():
                 max_ = self.__act_stats_perchannel__()
 
 
-    def get_alpha_gaus(self, tensor, stat_id=None, per_channel=False):
-        if stat_id is not None:
-            std = self.sm().get_tensor_stat(stat_id,'std','mean')
-        else:
-            if per_channel:
-                std = __act_stats_perchannel__(tensor, stat_id)
-            else:
-                std = __act_stats__(tensor, stat_id)
-
-        return std*(self.alpha_gaus_positive[self.num_bits] if (self.force_positive or self.half_range) else self.alpha_gaus[self.num_bits])
-    
     def get_alpha_laplace(self, stat_id=None, per_channel=False):
         if stat_id is not None:
             self.sm().get_tensor_stat(stat_id)
@@ -173,16 +162,29 @@ class IntQuantizer():
         else:
             aciq_factor = self.alpha_laplace_positive[self.num_bits] if self.force_positive else self.alpha_laplace[self.num_bits]
     
-    def get_alpha_pstd(self, tensor, p, tag, stat_id=None, per_channel=False):
+
+    def get_alpha_gaus(self, tensor, stat_id=None, per_channel=False):
         if stat_id is not None:
-            self.sm().get_tensor_stat()
+            std = self.sm().get_tensor_stat(stat_id,'std','mean')
         else:
             if per_channel:
-                self.__act_stats_perchannel__(tensor, stat_id)
+                std = __act_stats_perchannel__(tensor, stat_id)
             else:
-                self.__act_stats__(tensor, stat_id)
+                std = __act_stats__(tensor, stat_id)
 
-        self.alpha_gaus_positive(self.num_bits) if self.force_positive else self.alpha_gaus(self.num_bits)
+        return std*(self.alpha_gaus_positive[self.num_bits] if (self.force_positive or self.half_range) else self.alpha_gaus[self.num_bits])
+
+
+    def get_alpha_pstd(self, tensor, p, tag, stat_id=None, per_channel=False):
+        if stat_id is not None:
+            std = self.sm().get_tensor_stat(stat_id, 'std', 'mean')
+        else:
+            if per_channel:
+                std = self.__act_stats_perchannel__(tensor, stat_id)
+            else:
+                std = self.__act_stats__(tensor, stat_id)
+
+        return p*std
 
     def get_alpha(self, tensor, tag="", stat_id=None, clip_type='laplace', per_channel=False):
         if clip_type=='laplace':
