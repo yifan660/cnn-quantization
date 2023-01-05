@@ -137,14 +137,14 @@ class IntQuantizer():
 
     def get_alpha_gaus(self, tensor, stat_id=None, per_channel=False):
         if stat_id is not None:
-            self.sm().get_tensor_stat(stat_id)
+            std = self.sm().get_tensor_stat(stat_id,'std','mean')
         else:
             if per_channel:
-                __act_stats_perchannel__(tensor, stat_id)
+                std = __act_stats_perchannel__(tensor, stat_id)
             else:
-                __act_stats__(tensor, stat_id)
+                std = __act_stats__(tensor, stat_id)
 
-        self.alpha_gaus_positive(self.num_bits) if self.force_positive else self.alpha_gaus(self.num_bits)
+        return std*(self.alpha_gaus_positive[self.num_bits] if (self.force_positive or self.half_range) else self.alpha_gaus[self.num_bits])
     
     def get_alpha_laplace(self, stat_id=None, per_channel=False):
         if stat_id is not None:
