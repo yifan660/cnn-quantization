@@ -322,10 +322,10 @@ class IntQuantizer():
             if avg_over_batch:
                 torch.mean(dim)
 
-    def __gemmlowpQuantize1__(self, delta):
+    def __gemmlowpQuantize1__(self, tensor, delta, offset, bit_alloc=None, measure_entropy=False):
         # function to quantize op
         qmin=0
-        if:
+        if bit_alloc is None:
             qmax = 2**self.bit_nums-1
             scale = (delta)/(qmax-qmin)
         else:
@@ -335,10 +335,12 @@ class IntQuantizer():
         scale = torch.max(scale, torch.tensor([1e-8]).to(tensor.device))
 
         if self.enforce_true_zero:
+            initial_zero_point = qmin - offset/scale
+            zero_point = torch.round(initial_zero_point)
             output = torch.div(output, scale.unsqueeze(-1))
             output = torch.add(output, zero_point.unsqueeze(-1))        
         else:
-            output = torch.add(output, scale.unsqueeze(-1))
+            output = torch.add(output, -offset.unsqueeze(-1))
             output = torch.div(output, scale.unsqueeze(-1))
 
         
