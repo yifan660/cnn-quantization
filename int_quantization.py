@@ -151,7 +151,8 @@ class IntQuantizer():
             min_value = stats['min']
             max_value = stats['max']
 
-        if:
+        if self.pcq_a and len(tensor.shape)>3 and (tensor.shape[2]):
+            max_ = min_value + range
             get_alpha()
             alpha2DeltaOffset(alpha, max_value, min_value, mean)
             res = self.gemmlowpQuantizeActivationPerChannel(tensor,id, tag)
