@@ -153,11 +153,34 @@ class IntQuantizer():
 
         if:
             get_alpha()
+            alpha2DeltaOffset(alpha, max_value, min_value, mean)
             res = self.gemmlowpQuantizeActivationPerChannel(tensor,id, tag)
             
             res = self.__gemmlowpQuantize1__(tensor,)
-    def gemmlowpMinMaxQuantize():
+   
+    def gemmlowpMinMaxQuantize(self, tensor, stat_id=None):
         if stat_id is not None:
+            if self.stats_kind == 'mean':
+                kind = {'min': 'mean', 'max': 'mean', 'mean': 'mean', 'std': 'mean', 'mean_abs': 'mean'}
+            else:
+                kind = {'min': 'min', 'max': 'max', 'mean': 'mean', 'std': 'mean', 'mean_abs': 'mean'}
+
+            min_ = self.sm().get_tensor_stat(stat_id, 'min', 'mean') 
+            max_ = self.sm().get_tensor_stat(stat_id,)
+
+        else:
+            stats = self.__act_stats__(tensor,)
+            min_ = stats['min']
+            max_ = stats['max']
+
+        if
+    def gemmlowpKldQuantize():
+        min_ = self.sm().get_tensor_stat(stat_id, 'min', 'mean')
+        max_ = self.sm().get_tensor_stat(stat_id, 'max', 'mean')
+        kld = self.sm().get_tensor_stat(stat_id, 'kld', 'mean')
+        mean = self.sm().get_tensor_stat(stat_id, 'mean', 'mean')
+
+        self.alpha2DeltaOffset(max_, min_, mean)
 
     def gemmlowpQuantizeWeightsPerChannel():
 
