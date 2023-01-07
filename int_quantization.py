@@ -20,7 +20,7 @@ class IntQuantizer():
         self.enforce_true
         self.
         self.
-        self.clipping = params
+        self.clipping = params['clipping']
         self.stats_kind = params
         self.kld = params['kld']
         self.pcq_w = params['pcq_weights']
@@ -43,8 +43,8 @@ class IntQuantizer():
         self.alpha_laplace = {0:1.05, 1:1.86, 2:2.83, 3:3.89, 4:5.03, 5:6.2, 6:7.41, 7:8.64, 8:9.89}
         self.alpha_laplace_positive = {0:1.86, 1:2.83, 2:3.89, 3:5.03, 4:6.2, 5:7.41, 6:8.64, 7:9.89, 8:11.16}
     
-        self.gaussian_const = (0.5*0.35)*(1)
-        self.sm = StatisticManagerPerChannel() if else StatisticManager
+        self.gaussian_const = (0.5*0.35)*(1+(math.pi*math.log(4))**0.5)
+        self.sm = StatisticManagerPerChannel() if params['pcq_act'] else StatisticManager
         self.force_positive = False
         self.half_range = False
 
@@ -90,29 +90,40 @@ class IntQuantizer():
         return alpha
 
     def mid_tread_quantize_weights_per_channel(self, tensor, id):
+        # tensor.view[tensor.shape]
         t = tensor.view(tensor.shape[0],-1)
 
-        self.mid_tread_quantization(t, id, self.bit_alloc_target_weight, clip=True, sym=True)
-        
+        tq, entropy = self.mid_tread_quantization(t, id, self.bit_alloc_target_weight, clip=True, sym=True)
+
+        return tq.view(tensor.shape)  
+
     def mid_tread_quantize_activation(self, tensor, id):
-        if self.pcq_a 
+        if self.pcq_a and len(tensor.shape)>3 and (tensor.shape[2]>1 or tensor.shape[3]>1):
+            # tensor is [N,C,H,W] and H and W is greater than 1
             out = self.mid_tread_quantize_activation_per_channel(tensor, id)
         else:
-            out, entropy = self.mid_tread_quantization(tensor, id, self.,sym=symmetric)
+            symmetric = not (self.force_positive or self.half_range)
+            out, entropy = self.mid_tread_quantization(tensor, id, self.bit_alloc_target_act, sym=symmetric)
 
+        return out.view(tensor.shape)
 
     def mid_tread_quantize_activation_per_channel(self, tensor, id):
-        symmetric = not (self.force_positive or self.half_range)
-        tq, entropy = mid_tread_quantization(tensor, id, target,sym=symmetric)
+        N, C, H, W = tensor.shape
+        t = tensor.detach().transpose(0,1).contiguous()     # C x N x H x W
+        t = t.view(t.shape[0],-1)
 
-        tq.view(C,H).transpose(0, 1).contiguous()  # C x N x H x W
+        symmetric = not (self.force_positive or self.half_range)   
+        tq, entropy = mid_tread_quantization(tensor, id, self.bit_alloc_target_act,sym=symmetric)
+
+        output = tq.view(C,H).transpose(0, 1).contiguous()  # C x N x H x W
+        return output.view(tensor.shape)
 
     def mid_tread_quantization(self, tensor, id, target, clip=False, sym=True):
         std = tensor.std(-1)
-        omega = self.get_omega(std)
+        omega = self.get_omega(std, target_bins=(2**target)).round()
 
         if clip:
-            alpha_mult = tensor.new_tensor(self.get_alpha_mult(omega))
+            alpha_mult = tensor.new_tensor(self.get_alpha_mult(omega, sym=sym))
             mu = tensor.mean(dim=-1)
             # unsqueeze is adding one dimension
             b = torch.mean(torch.abs(tensor-mu.unsqueeze(-1)), dim=-1)
@@ -121,7 +132,10 @@ class IntQuantizer():
         else:
             rng=(tensor.max(-1)[0]-tensor.min(-1)[0]) if sym else tensor.max(-1)[0]
 
-        torch.where(omega>0, tensor.new_tensor())
+        Delta = torch.where(omega>0, rng/omega, tensor.new_tensor([]))
+
+        out = tensor/Delta.unsqueeze(-1)
+        out.round_()
 
         if clip:
             mu_q = mu/Delta if sym else torch.max(mu, mu.new_tensor([0]))/Delta
@@ -233,7 +247,8 @@ class IntQuantizer():
         else:
             aciq_factor = self.alpha_laplace_positive[self.num_bits] if self.force_positive else self.alpha_laplace[self.num_bits]
     
-
+        return aciq_factor
+        
     def get_alpha_gaus(self, tensor, stat_id=None, per_channel=False):
         if stat_id is not None:
             std = self.sm().get_tensor_stat(stat_id,'std','mean')
